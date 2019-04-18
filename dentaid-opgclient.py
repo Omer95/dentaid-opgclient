@@ -6,6 +6,7 @@ from watchdog.events import FileSystemEventHandler
 import cv2
 import json
 import time
+import base64
 
 class Watcher:
     DIRECTORY_TO_WATCH = "./opgs"
@@ -36,7 +37,7 @@ class Handler(FileSystemEventHandler):
             print('Received created event - %s.' % event.src_path)
             addr = 'http://127.0.0.1:5000'
             # prepare headers for http request
-            content_type = 'image/jpeg'
+            content_type = 'application/json'
             headers = {
                 'content-type': content_type
             }
@@ -47,10 +48,16 @@ class Handler(FileSystemEventHandler):
             print(img_path)
             time.sleep(1)
             img = cv2.imread(img_path)
-            # encode image as jpeg
-            _, img_encoded = cv2.imencode('.jpg', img)
+            # convert image to string to send it over post request
+            with open(img_path, 'rb') as imagefile:
+                img_str = base64.b64encode(imagefile.read())
+                img_str = img_str.decode('utf-8')
             # send http post request
-            res = requests.post(addr, data = img_encoded.tostring(), headers=headers)
+            data = {
+                'image': img_str,
+                'filename': event.src_path.split('\\')[1]
+            }
+            res = requests.post(addr, data = json.dumps(data), headers = headers)
             print(json.loads(res.text))
         elif event.event_type == 'modified':
             # take any action here when a file is modified
