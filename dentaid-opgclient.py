@@ -35,7 +35,7 @@ class Handler(FileSystemEventHandler):
         elif event.event_type == 'created':
             # take any action here when a file is created
             print('Received created event - %s.' % event.src_path)
-            addr = 'http://127.0.0.1:5000'
+            addr = 'http://52.200.112.18:80'
             # prepare headers for http request
             content_type = 'application/json'
             headers = {
